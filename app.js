@@ -14,7 +14,8 @@ console.log("ENV API KEY:", process.env.GEMINI_API_KEY);
 const apiKey = process.env.GEMINI_API_KEY;
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: 'https://your-frontend-vercel-url.vercel.app' }));
+
 app.use(express.json({ limit: config.UPLOAD_LIMIT }));
 app.use(express.urlencoded({ extended: true, limit: config.UPLOAD_LIMIT }));
 
