@@ -2,19 +2,16 @@ const dotenv = require('dotenv');
 dotenv.config();
 const express = require('express');
 const cors = require('cors');
+const serverless = require('serverless-http'); // ✅ Import serverless-http
+
 const config = require('./config/config');
 const pdfRoutes = require('./routes/pdfRoutes');
 
 const app = express();
 
-
 console.log("ENV API KEY:", process.env.GEMINI_API_KEY);
 
-
-
-// Now you can use:
 const apiKey = process.env.GEMINI_API_KEY;
-
 
 // Middleware
 app.use(cors());
@@ -25,6 +22,10 @@ app.use(express.urlencoded({ extended: true, limit: config.UPLOAD_LIMIT }));
 app.use('/api', pdfRoutes);
 
 // Health check
+app.get('/', (req, res) => {
+  res.send('Backend is working!');
+});
+
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK' });
 });
@@ -35,9 +36,5 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-module.exports = app;
-
-
-app.listen(config.PORT, () => {
-  console.log(`Server running on port ${config.PORT}`);
-});
+// ✅ Export the serverless handler for Vercel
+module.exports = serverless(app);
