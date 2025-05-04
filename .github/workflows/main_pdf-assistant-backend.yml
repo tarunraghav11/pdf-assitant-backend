@@ -59,4 +59,4 @@ jobs:
         with:
           app-name: 'pdf-assistant-backend'
           slot-name: 'Production'
-          package: .
+          package: ./backend
