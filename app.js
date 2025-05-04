@@ -37,5 +37,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
+module.exports = app; // ✅ Export the app for serverless-http  
+
 // ✅ Export the serverless handler for Vercel
 module.exports = serverless(app);
