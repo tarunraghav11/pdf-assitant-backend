@@ -6,12 +6,14 @@ on:
       - main
   workflow_dispatch:
 
+# Add these permissions at the workflow level
+permissions:
+  id-token: write   # Required for Azure federated credentials
+  contents: read    # Required for actions/checkout
+
 jobs:
   build:
     runs-on: windows-latest
-    permissions:
-      contents: read
-
     steps:
       - uses: actions/checkout@v4
 
@@ -24,16 +26,12 @@ jobs:
         run: |
           npm install
           npm run build --if-present
-          # Skip tests or replace with actual tests
-          echo "Skipping tests for deployment"
       
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
           path: .
-          # Include only necessary files for production
-          retention-days: 1
 
   deploy:
     runs-on: ubuntu-latest
@@ -47,7 +45,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
-          path: .
 
       - name: Login to Azure
         uses: azure/login@v2
