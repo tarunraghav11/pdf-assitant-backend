@@ -65,4 +65,8 @@ jobs:
           app-name: 'pdf-assistant-backend'
           slot-name: 'Production'
           package: .
+
+      - name: Run tests
+        run: npm test
+        continue-on-error: true
           
