@@ -1,109 +1,27 @@
-name: Build and deploy Node.js app to Azure Web App - pdf-assistant-backend
-
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-
-permissions:
-  id-token: write
-  contents: read
-
-env:
-  NODE_ENV: production
-  AZURE_WEBAPP_NAME: 'pdf-assistant-backend'
-  AZURE_WEBAPP_PACKAGE_PATH: '.'
-
-jobs:
-  build:
-    runs-on: windows-latest
-    
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Validate package.json
-        run: |
-          # Verify package.json is valid JSON
-          node -e "require('./package.json')"
-          echo "package.json is valid JSON"
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20.x'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm install --omit=dev  # Updated to modern npm syntax
-
-      - name: Run build if exists
-        run: |
-          if (Test-Path package.json) {
-            $package = Get-Content package.json | ConvertFrom-Json
-            if ($package.scripts.build) {
-              npm run build
-            } else {
-              Write-Output "No build script found - skipping build step"
-            }
-          } else {
-            Write-Output "No package.json found - skipping build step"
-          }
-        shell: pwsh
-
-      - name: Create web.config for Node.js
-        run: |
-          echo "<configuration>
-          <system.webServer>
-            <handlers>
-              <add name=`"iisnode`" path=`"server.js`" verb=`"*`" modules=`"iisnode`"/>
-            </handlers>
-            <rewrite>
-              <rules>
-                <rule name=`"DynamicContent`">
-                  <conditions>
-                    <add input=`"{REQUEST_FILENAME}`" matchType=`"IsFile`" negate=`"True`"/>
-                  </conditions>
-                  <action type=`"Rewrite`" url=`"server.js`"/>
-                </rule>
-              </rules>
-            </rewrite>
-          </system.webServer>
-          </configuration>" > web.config
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: node-app
-          path: |
-            .
-            !node_modules/
-
-  deploy:
-    runs-on: windows-latest
-    needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: node-app
-          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F06004DC060D4C4E806636BBD325C87C }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_BB09D5BC7FA14305901ED5D40241921E }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6E5731ECE66C42498A657DFEF62C0C29 }}
-
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        id: deploy-to-webapp
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          slot-name: 'Production'
-          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  "start": "node server.js",
+  "build": "echo 'No build needed' && exit 0",  // This is a safe no-op
+  "test": "echo \"Error: no test specified\" && exit 0"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "multer": "^1.4.5-lts.2",
+    "pdf-lib": "^1.17.1",
+    "pdf-parse": "^1.1.1",
+    "serverless-http": "^3.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
