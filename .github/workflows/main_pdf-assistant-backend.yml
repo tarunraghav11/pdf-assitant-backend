@@ -22,6 +22,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate package.json
+        run: |
+          # Verify package.json is valid JSON
+          node -e "require('./package.json')"
+          echo "package.json is valid JSON"
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -29,7 +35,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install --production
+        run: npm install --omit=dev  # Updated to modern npm syntax
 
       - name: Run build if exists
         run: |
