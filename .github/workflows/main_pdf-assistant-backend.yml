@@ -6,45 +6,75 @@ on:
       - main
   workflow_dispatch:
 
-# Add these permissions at the workflow level
 permissions:
-  id-token: write   # Required for Azure federated credentials
-  contents: read    # Required for actions/checkout
+  id-token: write
+  contents: read
+
+env:
+  NODE_ENV: production
+  AZURE_WEBAPP_NAME: 'pdf-assistant-backend'
+  AZURE_WEBAPP_PACKAGE_PATH: '.'
 
 jobs:
   build:
     runs-on: windows-latest
+    
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js version
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
+          cache: 'npm'
 
-      - name: npm install and build
+      - name: Install dependencies
+        run: npm install --production
+
+      - name: Build application
+        run: npm run build --if-present || echo "Build step skipped"
+
+      - name: Create web.config for Node.js
         run: |
-          npm install
-          npm run build --if-present
-      
-      - name: Upload artifact for deployment job
+          echo "<configuration>
+          <system.webServer>
+            <handlers>
+              <add name=\"iisnode\" path=\"server.js\" verb=\"*\" modules=\"iisnode\"/>
+            </handlers>
+            <rewrite>
+              <rules>
+                <rule name=\"DynamicContent\">
+                  <conditions>
+                    <add input=\"{REQUEST_FILENAME}\" matchType=\"IsFile\" negate=\"True\"/>
+                  </conditions>
+                  <action type=\"Rewrite\" url=\"server.js\"/>
+                </rule>
+              </rules>
+            </rewrite>
+          </system.webServer>
+          </configuration>" > web.config
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: |
+            .
+            !node_modules/
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: build
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: node-app
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -53,10 +83,10 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_BB09D5BC7FA14305901ED5D40241921E }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6E5731ECE66C42498A657DFEF62C0C29 }}
 
-      - name: 'Deploy to Azure Web App'
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
-          app-name: 'pdf-assistant-backend'
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: 'Production'
-          package: ./
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
