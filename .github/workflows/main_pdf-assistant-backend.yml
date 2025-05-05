@@ -23,7 +23,6 @@ jobs:
 
       - name: Validate package.json
         run: |
-          # Verify package.json is valid JSON
           node -e "require('./package.json')"
           echo "package.json is valid JSON"
 
@@ -38,28 +37,6 @@ jobs:
 
       - name: Run build
         run: npm run build
-
-      - name: Create web.config
-        run: |
-          @"
-          <configuration>
-            <system.webServer>
-              <handlers>
-                <add name="iisnode" path="server.js" verb="*" modules="iisnode"/>
-              </handlers>
-              <rewrite>
-                <rules>
-                  <rule name="DynamicContent">
-                    <conditions>
-                      <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="True"/>
-                    </conditions>
-                    <action type="Rewrite" url="server.js"/>
-                  </rule>
-                </rules>
-              </rewrite>
-            </system.webServer>
-          </configuration>
-          "@ | Out-File -FilePath web.config -Encoding utf8
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
