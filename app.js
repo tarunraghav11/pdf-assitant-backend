@@ -14,7 +14,7 @@ console.log("ENV API KEY:", process.env.GEMINI_API_KEY);
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://ambitious-sky-05446dd10.6.azurestaticapps.net'],
+  origin: ['http://localhost:5173', 'https://pdf-assistant-frontend.onrender.com'],
 }));
 
 app.use(express.json({ limit: config.UPLOAD_LIMIT }));

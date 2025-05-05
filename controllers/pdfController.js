@@ -3,6 +3,14 @@ const fs = require('fs').promises;
 const pdfService = require('../services/pdfService');
 const geminiService = require('../services/geminiService');
 
+exports.processPdf = async (req, res) => {
+  console.log("Received PDF:", req.file);
+  console.log("Task:", req.body.task);
+
+  // Dummy response
+  res.json({ result: "PDF processed", task: req.body.task });
+};
+
 const processPdf = async (req, res) => {
   try {
     if (!req.file) {
