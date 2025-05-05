@@ -14,7 +14,7 @@ console.log("ENV API KEY:", process.env.GEMINI_API_KEY);
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://pdf-assistant-frontend.onrender.com'],
+  origin: ['https://pdf-assistant-frontend.onrender.com','http://localhost:5173'],
 }));
 
 app.use(express.json({ limit: config.UPLOAD_LIMIT }));
