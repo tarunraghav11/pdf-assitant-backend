@@ -24,7 +24,16 @@ const getPageCount = async (filePath) => {
   }
 };
 
+function chunkText(text, chunkSize = 500) {
+  const chunks = [];
+  for (let i = 0; i < text.length; i += chunkSize) {
+    chunks.push(text.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
 module.exports = {
   extractTextFromPdf,
-  getPageCount
+  getPageCount,
+  chunkText // exported for use in generateContent
 };

@@ -1,54 +1,76 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenerativeAI, GoogleGenerativeAIEmbeddings } = require('@google/generative-ai');
+const { MemoryVectorStore } = require('langchain/vectorstores/memory');
 const config = require('../config/config');
+const { chunkText } = require('./pdfService.js');
 
 const genAI = new GoogleGenerativeAI(config.GEMINI_API_KEY);
 
-console.log("Loaded Gemini Key:", process.env.GEMINI_API_KEY);
 
 
-const generateContent = async (text, task) => {
+// Build vector store from text chunks
+async function buildVectorStore(text) {
+  const chunks = chunkText(text);
+  const embeddings = new GoogleGenerativeAIEmbeddings({
+    apiKey: config.GEMINI_API_KEY,
+    model: 'embedding-001',
+  });
+
+  const vectorStore = await MemoryVectorStore.fromTexts(
+    chunks,
+    chunks.map((_, i) => ({ id: i })),
+    embeddings
+  );
+
+  return vectorStore;
+}
+
+// Get relevant chunks from query
+async function retrieveRelevantChunks(query, vectorStore, topK = 4) {
+  const results = await vectorStore.similaritySearch(query, topK);
+  return results.map(r => r.pageContent).join('\n');
+}
+
+// Generate RAG-based output
+const generateContent = async (fullText, task) => {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro-exp-03-25" });
-    
+
+    const vectorStore = await buildVectorStore(fullText);
+    const context = await retrieveRelevantChunks(task, vectorStore);
+
     let prompt;
     switch (task) {
       case 'summary':
-        prompt = `Summarize the following educational text into 6 to 8 clear, concise bullet points. 
-Do not use asterisks (*), dashes (-), or markdown symbols.
-Use plain hyphenless bullet points like:
+        prompt = `Summarize the following educational content into 6 to 8 concise bullet points.
+Use plain bullets (no symbols). Each point should cover a unique idea.
 
-- Point one
-- Point two
-
-Ensure each bullet highlights a distinct idea and stays concise.
-
-Text:\n\n${text}`;
+Context:
+${context}`;
         break;
+
       case 'notes':
-        prompt = `You are a study assistant. Your task is to extract key points from the following educational text and output them as clearly numbered study notes.
-Do not use asterisks (*), dashes (-), bullet symbols, or any markdown formatting. Only use numbers like:
+        prompt = `You are a study assistant. Extract clear, numbered notes from the following text.
+No bullets, asterisks, or symbols. Just use numbers and sub-points if needed.
 
-1. First point
-2. Second point
-3. Third point
-
-If there are sub-points, format them as:
-1. Main point
-   a. Sub-point one
-   b. Sub-point two
-
-Here is the text:${text}`;
+Context:
+${context}`;
         break;
+
       case 'mcqs':
-        prompt = `Generate 10 multiple-choice questions (MCQs) with 4 options each based on the following text. Format each question like this:
-        Q1. [Question text]
-        A. [Option 1]
-        B. [Option 2]
-        C. [Option 3]
-        D. [Option 4]
-        Answer: [Correct option letter]
-        \n\nText: ${text}`;
+        prompt = `Generate 10 multiple-choice questions (MCQs) with 4 options each using this content.
+
+Each should be formatted like:
+Q1. Question text
+A. Option 1
+B. Option 2
+C. Option 3
+D. Option 4
+Answer: [Correct option letter]
+
+Context:
+${context}`;
         break;
+
       default:
         throw new Error('Invalid task specified');
     }

@@ -14,8 +14,19 @@ const processPdf = async (req, res) => {
       return res.status(400).json({ error: 'Invalid task specified' });
     }
 
-    const extractedText = await pdfService.extractTextFromPdf(req.file.path);
-    const result = await geminiService.generateContent(extractedText, task);
+    // 1. Extract full text
+    const fullText = await pdfService.extractTextFromPdf(req.file.path);
+
+    // 2. Build a vector store from chunks (embedding-based memory)
+    const vectorStore = await geminiService.buildVectorStore(fullText);
+
+    // 3. Use task as a query to retrieve context chunks
+    const context = await geminiService.retrieveRelevantChunks(task, vectorStore);
+
+    // 4. Send context + task to Gemini
+    const result = await geminiService.generateContent(context, task);
+
+    // 5. Clean up
     await fs.unlink(req.file.path);
 
     res.json({
