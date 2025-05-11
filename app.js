@@ -16,6 +16,7 @@ connectDB();
 
 app.use(cors({
   origin: ['http://localhost:5173', 'https://pdf-assistant-frontend.onrender.com'],
+  credentials: true,
 }));
 app.use(express.json({ limit: config.UPLOAD_LIMIT }));
 app.use(express.urlencoded({ extended: true, limit: config.UPLOAD_LIMIT }));
