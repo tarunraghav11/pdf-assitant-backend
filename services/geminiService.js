@@ -1,4 +1,6 @@
-const { GoogleGenerativeAI, GoogleGenerativeAIEmbeddings } = require('@google/generative-ai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenerativeAIEmbeddings } = require ("@langchain/google-genai");
+
 const { MemoryVectorStore } = require('langchain/vectorstores/memory');
 const config = require('../config/config');
 const { chunkText } = require('./pdfService.js');
@@ -85,5 +87,7 @@ ${context}`;
 };
 
 module.exports = {
-  generateContent
+  generateContent,
+  buildVectorStore, // Now exported
+  retrieveRelevantChunks // Optional, if needed elsewhere
 };
