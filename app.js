@@ -14,14 +14,9 @@ const app = express();
 
 connectDB();
 
-
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://pdf-assistant-frontend.onrender.com'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  origin: ['https://pdf-assistant-frontend.onrender.com'],
 }));
-
 app.use(express.json({ limit: config.UPLOAD_LIMIT }));
 app.use(express.urlencoded({ extended: true, limit: config.UPLOAD_LIMIT }));
 
