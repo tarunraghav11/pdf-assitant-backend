@@ -14,7 +14,6 @@ const app = express();
 
 connectDB();
 
-const cors = require('cors');
 
 app.use(cors({
   origin: ['http://localhost:5173', 'https://pdf-assistant-frontend.onrender.com'],
