@@ -35,7 +35,7 @@ async function retrieveRelevantChunks(query, vectorStore, topK = 4) {
 // Generate RAG-based output
 const generateContent = async (fullText, task) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro-exp-03-25" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const vectorStore = await buildVectorStore(fullText);
     const context = await retrieveRelevantChunks(task, vectorStore);
