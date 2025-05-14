@@ -15,7 +15,7 @@ const app = express();
 connectDB();
 
 app.use(cors({
-  origin: ['https://pdf-assistant-frontend.onrender.com'],
+  origin: ['https://wonderful-hill-0e72acc1e.6.azurestaticapps.net/'],
 }));
 app.use(express.json({ limit: config.UPLOAD_LIMIT }));
 app.use(express.urlencoded({ extended: true, limit: config.UPLOAD_LIMIT }));
