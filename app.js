@@ -16,9 +16,7 @@ connectDB();
 
 
 app.use(cors({
-  origin: 'https://wonderful-hill-0e72acc1e.6.azurestaticapps.net',  // Adjust for your frontend URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true,
+  origin: 'https://wonderful-hill-0e72acc1e.6.azurestaticapps.net'
 }));
 
 
